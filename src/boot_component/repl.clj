@@ -1,4 +1,5 @@
 (ns boot-component.repl
+  {:boot/export-tasks true}
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [disable-reload! refresh]]))
 
