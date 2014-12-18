@@ -12,3 +12,4 @@ pom.xml.asc
 /out
 .repl
 .DS_Store
+gpg.edn
