@@ -1,11 +1,12 @@
 (set-env!
   :source-paths #{"src"}
   :dependencies '[[org.clojure/clojure "1.7.0-alpha4" :scope "provided"]
-                  [adzerk/bootlaces "0.1.5" :scope "test"]])
+                  [adzerk/bootlaces "0.1.5" :scope "test"]
+                  [org.clojure/tools.namespace "0.2.7"]])
 
 (require '[adzerk.bootlaces :refer :all])
 
-(def +version+ "0.1.0")
+(def +version+ "0.1.0-SNAPSHOT")
 (bootlaces! +version+)
 
 (task-options!
