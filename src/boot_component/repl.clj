@@ -49,8 +49,11 @@
   [s system-var SYM sym "The var of the function that returns the component system"]
   (let [sys-init system-var
         ns-sym (symbol (namespace sys-init))]
-    (apply set-refresh-dirs (core/get-env :source-paths))
-    (set-init! (fn []
-                 (require ns-sym)
-                 ((ns-resolve ns-sym sys-init))))
-    identity))
+    (core/cleanup
+     (stop))
+    (core/with-pre-wrap fileset
+      (apply set-refresh-dirs (core/get-env :source-paths))
+      (set-init! (fn []
+                   (require ns-sym)
+                   ((ns-resolve ns-sym sys-init))))
+      fileset)))
