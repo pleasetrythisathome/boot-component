@@ -52,7 +52,10 @@
     (core/cleanup
      (stop))
     (core/with-pre-wrap fileset
-      (apply set-refresh-dirs (core/get-env :source-paths))
+      (->> (core/get-env)
+           ((juxt :source-paths :directories))
+           (reduce into)
+           (apply set-refresh-dirs))
       (set-init! (fn []
                    (require ns-sym)
                    ((ns-resolve ns-sym sys-init))))
