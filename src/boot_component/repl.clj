@@ -2,6 +2,7 @@
   {:boot/export-tasks true}
   (:require
    [com.stuartsierra.component :as component]
+   [tangrammer.component.co-dependency :as co-dependency]
    [clojure.tools.namespace.repl :refer [disable-reload! refresh set-refresh-dirs]]
    [boot.core :as core :refer [deftask]]
    [boot.pod :as pod]
@@ -25,7 +26,7 @@
     (throw (Error. "No system initializer function found."))))
 
 (defn start []
-  (alter-var-root #'system component/start)
+  (alter-var-root #'system co-dependency/start-system)
   :started)
 
 (defn stop []
