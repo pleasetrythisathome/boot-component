@@ -58,13 +58,13 @@
   (let [ns-sym (symbol (namespace system-var))]
     (boot/cleanup
      (stop))
+    (util/info "reload-system initializer: %s\n" system-var)
     (comp
      (boot/with-pre-wrap fileset
        (->> (boot/get-env)
             ((juxt :source-paths :directories))
             (reduce into)
             (apply set-refresh-dirs))
-       (util/info "reload-system initializer: %s\n" system-var)
        (set-init! (fn []
                     (require ns-sym)
                     ((ns-resolve ns-sym system-var))))
