@@ -70,6 +70,9 @@
                     ((ns-resolve ns-sym system-var))))
        fileset))))
 
+(def ^:private deps
+  (delay (remove pod/dependency-loaded? '[[quile/component-cljs "0.2.2"]])))
+
 (defn- write-cljs! [file system-var]
   (util/info "Writing %s...\n" (.getName file))
   (util/info "reload-system-cljs initializer: %s\n" system-var)
@@ -144,7 +147,8 @@
   (let [src  (boot/temp-dir!)
         tmp  (boot/temp-dir!)
         out  (doto (io/file src "boot_component" "reloaded.cljs") io/make-parents)]
-    (boot/set-env! :source-paths #(conj % (.getPath src)))
+    (boot/set-env! :source-paths #(conj % (.getPath src))
+                   :dependencies #(into % (vec (seq @deps))))
     (write-cljs! out system-var)
     (comp
      (boot/with-pre-wrap fileset
