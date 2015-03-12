@@ -1,12 +1,13 @@
 (ns boot-component.reloaded
   {:boot/export-tasks true}
-  (:require
-   [com.stuartsierra.component :as component]
-   [tangrammer.component.co-dependency :as co-dependency]
-   [clojure.tools.namespace.repl :refer [disable-reload! refresh set-refresh-dirs]]
-   [boot.core :as core :refer [deftask]]
-   [boot.pod :as pod]
-   [boot.util :as util]))
+  (:require [boot.core :as boot :refer [deftask]]
+            [boot.from.backtick :refer [template]]
+            [boot.pod :as pod]
+            [boot.util :as util]
+            [clojure.java.io :as io]
+            [clojure.tools.namespace.repl :refer [disable-reload! refresh set-refresh-dirs]]
+            [com.stuartsierra.component :as component]
+            [tangrammer.component.co-dependency :as co-dependency]))
 
 (disable-reload!)
 
@@ -54,17 +55,102 @@
 (deftask reload-system
   ""
   [s system-var SYM sym "The var of the function that returns the component system"]
-  (let [sys-init system-var
-        ns-sym (symbol (namespace sys-init))]
-    (core/cleanup
+  (let [ns-sym (symbol (namespace system-var))]
+    (boot/cleanup
      (stop))
-    (core/with-pre-wrap fileset
-      (->> (core/get-env)
-           ((juxt :source-paths :directories))
-           (reduce into)
-           (apply set-refresh-dirs))
-      (util/info "reload-system initializer: %s\n" sys-init)
-      (set-init! (fn []
-                   (require ns-sym)
-                   ((ns-resolve ns-sym sys-init))))
-      fileset)))
+    (comp
+     (boot/with-pre-wrap fileset
+       (->> (boot/get-env)
+            ((juxt :source-paths :directories))
+            (reduce into)
+            (apply set-refresh-dirs))
+       (util/info "reload-system initializer: %s\n" system-var)
+       (set-init! (fn []
+                    (require ns-sym)
+                    ((ns-resolve ns-sym system-var))))
+       fileset))))
+
+(defn- write-cljs! [file system-var]
+  (util/info "Writing %s...\n" (.getName file))
+  (util/info "reload-system-cljs initializer: %s\n" system-var)
+  (->> (template
+        ((ns boot-component.reloaded
+           (:require [quile.component :as component]
+                     ~@[(symbol (namespace system-var))]))
+
+         (defonce system (atom nil))
+
+         (defn- stop-system [s]
+           (when s (component/stop s)))
+
+         (defn init []
+           (swap! system #(do (stop-system %) (~system-var)))
+           :ok)
+
+         (defn start []
+           (swap! system component/start-system)
+           :started)
+
+         (defn stop []
+           (swap! system stop-system)
+           :stopped)
+
+         (defn clear []
+           (let [error (atom nil)]
+             (swap! system (fn [system]
+                             (try (stop-system system)
+                                  (catch js/Error e
+                                    (reset! error e)))
+                             nil))
+             (some-> error deref throw))
+           :ok)
+
+         (defn try-throw-cause
+           [f]
+           (try (f)
+                (catch ExceptionInfo e
+                  (.log js/console e)
+                  (if-let [c (ex-cause e)]
+                    (throw c)
+                    (throw e)))))
+
+         (defn go
+           []
+           (init)
+           (try-throw-cause #(start))
+           :ok)
+
+         (defn reset []
+           (clear)
+           (go))
+         ))
+       (map pr-str) (interpose "\n") (apply str) (spit file)))
+
+(defn- add-init!
+  [in-file out-file]
+  (let [ns 'boot-component.reloaded
+        spec (-> in-file slurp read-string)]
+    (when (not= :nodejs (-> spec :compiler-options :target))
+      (util/info "Adding :require %s to %s...\n" ns (.getName in-file))
+      (io/make-parents out-file)
+      (-> spec
+          (update-in [:require] conj ns)
+          pr-str
+          ((partial spit out-file))))))
+
+(deftask reload-system-cljs
+  ""
+  [s system-var SYM sym "The var of the function that returns the component system"]
+  (let [src  (boot/temp-dir!)
+        tmp  (boot/temp-dir!)
+        out  (doto (io/file src "boot_component" "reloaded.cljs") io/make-parents)]
+    (boot/set-env! :source-paths #(conj % (.getPath src)))
+    (write-cljs! out system-var)
+    (comp
+     (boot/with-pre-wrap fileset
+       (doseq [f (->> fileset boot/input-files (boot/by-ext [".cljs.edn"]))]
+         (let [path     (boot/tmppath f)
+               in-file  (boot/tmpfile f)
+               out-file (io/file tmp path)]
+           (add-init! in-file out-file)))
+       (-> fileset (boot/add-resource tmp) boot/commit!)))))
