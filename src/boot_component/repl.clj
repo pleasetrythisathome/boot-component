@@ -38,7 +38,13 @@
   (start))
 
 (defn clear []
-  (alter-var-root #'system #(do (stop-system %) nil))
+  (let [error (atom nil)]
+    (alter-var-root #'system (fn [system]
+                               (try (stop-system system)
+                                    (catch Throwable e
+                                      (reset! error e)))
+                               nil))
+    (some-> error deref throw))
   :ok)
 
 (defn reset []
@@ -57,6 +63,7 @@
            ((juxt :source-paths :directories))
            (reduce into)
            (apply set-refresh-dirs))
+      (util/info "reload-system initializer: %s\n" sys-init)
       (set-init! (fn []
                    (require ns-sym)
                    ((ns-resolve ns-sym sys-init))))
