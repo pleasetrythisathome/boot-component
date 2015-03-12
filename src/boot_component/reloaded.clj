@@ -1,4 +1,4 @@
-(ns boot-component.repl
+(ns boot-component.reloaded
   {:boot/export-tasks true}
   (:require
    [com.stuartsierra.component :as component]
@@ -49,7 +49,7 @@
 
 (defn reset []
   (clear)
-  (refresh :after 'boot-component.repl/go))
+  (refresh :after 'boot-component.reloaded/go))
 
 (deftask reload-system
   ""
