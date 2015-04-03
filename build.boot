@@ -4,7 +4,7 @@
                   [com.stuartsierra/component "0.2.3"]
                   [org.clojure/clojure "1.7.0-alpha5" :scope "provided"]
                   [org.clojure/tools.namespace "0.2.7"]
-                  [tangrammer/co-dependency "0.1.3"]])
+                  [juxt.modular/co-dependency "0.2.0"]])
 
 (require '[adzerk.bootlaces :refer :all])
 

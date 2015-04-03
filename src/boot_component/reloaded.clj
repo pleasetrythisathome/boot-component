@@ -7,7 +7,7 @@
             [clojure.java.io :as io]
             [clojure.tools.namespace.repl :refer [disable-reload! refresh set-refresh-dirs]]
             [com.stuartsierra.component :as component]
-            [tangrammer.component.co-dependency :as co-dependency]))
+            [modular.component.co-dependency :as co-dependency]))
 
 (disable-reload!)
 
