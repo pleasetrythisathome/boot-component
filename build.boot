@@ -11,9 +11,9 @@
 (bootlaces! +version+)
 
 (task-options!
- pom  {:project     'pleasetrythisathome/boot-component
+ pom  {:project     'ib5k/boot-component
        :version     +version+
        :description "Boot tasks for component systems"
-       :url         "https://github.com/pleasetrythisathome/boot-component"
-       :scm         {:url "https://github.com/pleasetrythisathome/boot-component"}
+       :url         "https://github.com/ib5k/boot-component"
+       :scm         {:url "https://github.com/ib5k/boot-component"}
        :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
