@@ -53,7 +53,11 @@
 
 (defn reset []
   (clear)
-  (refresh :after 'boot-component.reloaded/go))
+  (if init
+    (refresh :after 'boot-component.reloaded/go)
+    (do
+      (println "No system initializer function found. refreshing anyway.")
+      (refresh))))
 
 (deftask reload-system
   ""
