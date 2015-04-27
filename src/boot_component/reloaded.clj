@@ -59,28 +59,30 @@
       (println "No system initializer function found. refreshing anyway.")
       (refresh))))
 
+(defn require-and-call [v & args]
+  (let [ns (symbol (namespace v))]
+    (require ns)
+    (apply (ns-resolve ns v) args)))
+
 (deftask reload-system
   ""
   [s system-var SYM sym "The var of the function that returns the component system"
    f start-var SYM sym "var of the function to start the component system"]
-  (let [ns-sym (symbol (namespace system-var))]
-    (boot/cleanup
-     (stop))
-    (util/info "reload-system initializer: %s\n" system-var)
-    (comp
-     (boot/with-pre-wrap fileset
-       (->> (boot/get-env)
-            ((juxt :source-paths :directories))
-            (reduce into)
-            (apply set-refresh-dirs))
-       (set-init! (fn []
-                    (require ns-sym)
-                    ((ns-resolve ns-sym system-var))))
-       (when start-var
-         (set-start! (fn [system]
-                       (require ns-sym)
-                       ((ns-resolve ns-sym start-var) system))))
-       fileset))))
+  (boot/cleanup
+   (stop))
+  (comp
+   (boot/with-pre-wrap fileset
+     (->> (boot/get-env)
+          ((juxt :source-paths :directories))
+          (reduce into)
+          (apply set-refresh-dirs))
+     (when system-var
+       (util/info "reload-system initializer: %s\n" system-var)
+       (set-init! (partial require-and-call system-var)))
+     (when start-var
+       (util/info "reload-system start: %s\n" start-var)
+       (set-start! (partial require-and-call start-var)))
+     fileset)))
 
 (def ^:private deps
   (delay (remove pod/dependency-loaded? '[[quile/component-cljs "0.2.2"]])))
