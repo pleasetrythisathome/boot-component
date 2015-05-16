@@ -30,7 +30,12 @@
     (throw (Error. "No system initializer function found."))))
 
 (defn start []
-  (alter-var-root #'system starter)
+  (alter-var-root #'system (fn [system]
+                             (try (starter system)
+                                  (catch Throwable e
+                                    (when-let [system (some-> e ex-data :system)]
+                                      (stop-system system))
+                                    (throw e)))))
   :started)
 
 (defn stop []
@@ -53,7 +58,7 @@
 
 (defn reset []
   (clear)
-  (if init
+  (if initializer
     (refresh :after 'boot-component.reloaded/go)
     (do
       (println "No system initializer function found. refreshing anyway.")
