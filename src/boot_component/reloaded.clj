@@ -71,12 +71,13 @@
 
 (deftask reload-system
   ""
-  [s system-var SYM sym "The var of the function that returns the component system"
-   f start-var SYM sym "var of the function to start the component system"]
+  [v system-var SYM sym "The var of the function that returns the component system"
+   f start-var SYM sym "var of the function to start the component system"
+   s start? BOOL bool "Start the system immediately"]
   (boot/cleanup
    (stop))
   (comp
-   (boot/with-pre-wrap fileset
+   (boot/with-post-wrap fileset
      (->> (boot/get-env)
           ((juxt :source-paths :directories))
           (reduce into)
@@ -87,6 +88,8 @@
      (when start-var
        (util/info "reload-system start: %s\n" start-var)
        (set-start! (partial require-and-call start-var)))
+     (when start?
+       (go))
      fileset)))
 
 (def ^:private deps
