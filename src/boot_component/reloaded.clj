@@ -168,8 +168,8 @@
   ""
   [s system-var SYM sym "The var of the function that returns the component system"
    f start-var SYM sym "var of the function to start the component system"]
-  (let [src  (boot/temp-dir!)
-        tmp  (boot/temp-dir!)
+  (let [src  (boot/tmp-dir!)
+        tmp  (boot/tmp-dir!)
         out  (doto (io/file src "boot_component" "reloaded.cljs") io/make-parents)]
     (boot/set-env! :source-paths #(conj % (.getPath src))
                    :dependencies #(into % (vec (seq @deps))))
@@ -177,8 +177,8 @@
     (comp
      (boot/with-pre-wrap fileset
        (doseq [f (->> fileset boot/input-files (boot/by-ext [".cljs.edn"]))]
-         (let [path     (boot/tmppath f)
-               in-file  (boot/tmpfile f)
+         (let [path     (boot/tmp-path f)
+               in-file  (boot/tmp-file f)
                out-file (io/file tmp path)]
            (add-init! in-file out-file)))
        (-> fileset (boot/add-resource tmp) boot/commit!)))))
