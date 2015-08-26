@@ -6,7 +6,8 @@
             [boot.util :as util]
             [clojure.java.io :as io]
             [clojure.tools.namespace.repl :refer [disable-reload! refresh set-refresh-dirs]]
-            [com.stuartsierra.component :as component]))
+            [com.stuartsierra.component :as component]
+            [schema.core :as s]))
 
 (disable-reload!)
 
@@ -22,7 +23,9 @@
   (alter-var-root #'starter (constantly start)))
 
 (defn- stop-system [s]
-  (when s (component/stop s)))
+  (s/with-fn-validation
+    (when s
+      (component/stop s))))
 
 (defn init []
   (if-let [init initializer]
@@ -43,8 +46,9 @@
   :stopped)
 
 (defn go []
-  (init)
-  (start))
+  (s/with-fn-validation
+    (init)
+    (start)))
 
 (defn clear []
   (let [error (atom nil)]

@@ -3,7 +3,8 @@
   :dependencies '[[adzerk/bootlaces "0.1.11" :scope "test"]
                   [com.stuartsierra/component "0.2.3"]
                   [org.clojure/clojure "1.8.0-alpha4" :scope "provided"]
-                  [org.clojure/tools.namespace "0.2.11"]])
+                  [org.clojure/tools.namespace "0.2.11"]
+                  [prismatic/schema "0.4.3"]])
 
 (require '[adzerk.bootlaces :refer :all])
 
