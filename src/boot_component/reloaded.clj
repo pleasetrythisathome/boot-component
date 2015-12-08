@@ -23,9 +23,9 @@
   (alter-var-root #'starter (constantly start)))
 
 (defn- stop-system [s]
-  (s/with-fn-validation
-    (when s
-      (component/stop s))))
+  (if s
+    (component/stop s)
+    (println "No system found to stop.")))
 
 (defn init []
   (if-let [init initializer]
