@@ -77,7 +77,7 @@
   ""
   [v system-var SYM sym "The var of the function that returns the component system"
    f start-var SYM sym "var of the function to start the component system"
-   s start? BOOL bool "Start the system immediately"]
+   s start? bool "Start the system immediately"]
   (boot/cleanup
    (stop))
   (comp
