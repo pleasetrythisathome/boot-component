@@ -11,7 +11,7 @@
 
 (disable-reload!)
 
-(def system nil)
+(defonce system nil)
 
 (def ^:private initializer nil)
 (def ^:private starter component/start)
@@ -50,18 +50,8 @@
     (init)
     (start)))
 
-(defn clear []
-  (let [error (atom nil)]
-    (alter-var-root #'system (fn [system]
-                               (try (stop-system system)
-                                    (catch Throwable e
-                                      (reset! error e)))
-                               nil))
-    (some-> error deref throw))
-  :ok)
-
 (defn reset []
-  (clear)
+  (stop)
   (if initializer
     (refresh :after 'boot-component.reloaded/go)
     (do
